@@ -1,11 +1,55 @@
 local M = {}
+local utils = require("analyzer4d.utils")
 
 local msgid = 1
 local sock = nil
 
+
+local function default_handler(response)
+    print(vim.inspect(response))
+end
+
+local function handle_responsesetappvar(response)
+    if not response["ok"] then
+        vim.api.nvim_err_writeln("AppVar operation for appvar " .. response["p1"]  .. " was unsucessful")
+        return
+    end
+    vim.notify("Successfully set the AppVar " .. response["p1"])
+end
+
+local function get_response_handler(cmd)
+    local handlers = {
+        ["responsesetappvar"] = handle_responsesetappvar,
+        ["default"] = default_handler
+    }
+    if handlers[cmd] then
+        return handlers[cmd]
+    else
+        return handlers["default"]
+    end
+end
+
+local function handle_response(chan_id, data, name)
+    local success, resp_table = pcall(function()
+        local json_string = utils.remove_json_prefix(data[1])
+        return vim.json.decode(json_string)
+    end)
+    if not success then
+        vim.api.nvim_err_writeln("Error while parsing response: " .. vim.inspect(data))
+        return
+    end
+    if not resp_table["cmd"] then
+        print("Got unexpected response: " .. vim.inspect(resp_table))
+        return
+    end
+
+    local response_handler = get_response_handler(resp_table["cmd"])
+    response_handler(resp_table)
+end
+
 local function create_socket(host, port)
     local success, socket = pcall(function()
-        return vim.fn.sockconnect("tcp", host .. ":" .. port)
+        return vim.fn.sockconnect("tcp", host .. ":" .. port, {on_data=handle_response})
     end)
     if success then
         return socket
@@ -38,6 +82,10 @@ local function send_appcmd(opts)
     send(sock, opts)
 end
 
+local function send_cmd(cmd)
+    send(sock, cmd)
+end
+
 function M.reload_qml()
     local opts = {
         p1 = "LoadPenGUI",
@@ -55,7 +103,7 @@ function M.set_appvar(appvar, value)
         p1 = appvar,
         p2 = value
     }
-    send(sock, cmd)
+    send_cmd(cmd)
 end
 
 function M.start_measuring()
@@ -70,6 +118,24 @@ function M.stop_measuring()
         p1 = "stopMeasuring"
     }
     send_appcmd(opts)
+end
+
+function M.start_operator(op_name, params)
+    local cmd = {
+        cmd = "startoperator",
+        p1 = op_name,
+        p2 = params
+    }
+    send_cmd(cmd)
+end
+
+function M.subscribe_to_log()
+    local cmd = {
+        cmd = "reportlog",
+        p1 = true,
+        p2 = "striphtml"
+    }
+    send_cmd(cmd)
 end
 
 return M

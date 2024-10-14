@@ -39,6 +39,16 @@ function M.stop_measuring()
     com.stop_measuring()
 end
 
+function M.start_operator()
+    local op_name = vim.fn.input("Operator Name: ")
+    local params = vim.fn.input("Parameters: ")
+    com.start_operator(op_name, params)
+end
+
+function M.subscribe_to_log()
+    com.subscribe_to_log()
+end
+
 function M.setup(opts)
     for key, value in pairs(opts) do
         defaults[key] = value
@@ -57,6 +67,8 @@ function M.setup(opts)
     vim.api.nvim_create_user_command("AnalyzerSetAppVar", M.set_appvar, {})
     vim.api.nvim_create_user_command("AnalyzerStartMeasuring", M.start_measuring, {})
     vim.api.nvim_create_user_command("AnalyzerStopMeasuring", M.stop_measuring, {})
+    vim.api.nvim_create_user_command("AnalyzerStartOperator", M.start_operator, {})
+    vim.api.nvim_create_user_command("AnalyzerSubscribeLog", M.subscribe_to_log, {})
 end
 
 return M
