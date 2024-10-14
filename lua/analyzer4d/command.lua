@@ -6,7 +6,7 @@ local sock = nil
 
 
 local function default_handler(response)
-    print(vim.inspect(response))
+    --print(vim.inspect(response))
 end
 
 local function handle_responsesetappvar(response)
