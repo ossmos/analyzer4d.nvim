@@ -27,6 +27,18 @@ function M.connect()
     com.set_socket(host, defaults.port)
 end
 
+function M.reload_qml()
+    com.reload_qml()
+end
+
+function M.start_measuring()
+    com.stop_measuring()
+end
+
+function M.stop_measuring()
+    com.stop_measuring()
+end
+
 function M.setup(opts)
     for key, value in pairs(opts) do
         defaults[key] = value
@@ -40,6 +52,11 @@ function M.setup(opts)
     if defaults.always_connect then
         com.set_socket(defaults.host, defaults.port)
     end
+    vim.api.nvim_create_user_command("AnalyzerConnect", M.connect, {})
+    vim.api.nvim_create_user_command("AnalyzerQmlReload", M.reload_qml, {})
+    vim.api.nvim_create_user_command("AnalyzerSetAppVar", M.set_appvar, {})
+    vim.api.nvim_create_user_command("AnalyzerStartMeasuring", M.start_measuring, {})
+    vim.api.nvim_create_user_command("AnalyzerStopMeasuring", M.stop_measuring, {})
 end
 
 return M
