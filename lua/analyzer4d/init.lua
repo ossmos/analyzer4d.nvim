@@ -40,11 +40,6 @@ function M.setup(opts)
     if defaults.always_connect then
         com.set_socket(defaults.host, defaults.port)
     end
-    vim.api.nvim_create_user_command("AnalyzerConnect", M.connect, {})
-    vim.api.nvim_create_user_command("AnalyzerQmlReload", com.reload_qml, {})
-    vim.api.nvim_create_user_command("AnalyzerSetAppVar", M.set_appvar, {})
-    vim.api.nvim_create_user_command("AnalyzerStartMeasuring", com.start_measuring, {})
-    vim.api.nvim_create_user_command("AnalyzerStopMeasuring", com.stop_measuring, {})
 end
 
 return M
