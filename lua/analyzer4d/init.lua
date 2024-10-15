@@ -9,6 +9,14 @@ local log_buf = vim.api.nvim_create_buf(false, true)
 local function configure_log_buffer(buf)
     vim.api.nvim_buf_set_var(buf, "buftype", "nofile")
     vim.api.nvim_buf_set_var(buf, "readonly", true)
+    vim.api.nvim_buf_set_name(buf, "Analyzer4D log")
+    vim.api.nvim_create_autocmd({"BufWritePre"}, {
+        pattern = "Analyzer4D log",
+        callback = function()
+            vim.api.nvim_buf_set_var(buf, "modified", false)
+        end
+    })
+    -- foo
 end
 
 local function check_connected(func)
@@ -77,7 +85,7 @@ end
 function M.setup(opts)
     Config = config.create_config(opts)
     if Config.subscribe_log then
-        M.subscribe_to_log()
+        check_connected(M.subscribe_to_log)()
     end
     vim.api.nvim_create_user_command("AnalyzerToggleLog", M.toggle_log, {})
     vim.api.nvim_create_user_command("AnalyzerQmlReload", check_connected(M.reload_qml), {})
