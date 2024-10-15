@@ -36,8 +36,9 @@ require("analyzer4d").setup({
     -- the port of the json communication server
     port = 17000
 
-    -- whether to always try to connect to the Analyzer4D software on start
-    always_connect = false
+    -- tries to auto connect to the Analyzer4D if there is no connection yet
+    -- and a command is executed
+    always_connect = true
 })
 ```
 

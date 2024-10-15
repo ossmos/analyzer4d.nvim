@@ -1,11 +1,18 @@
 local M = {}
 local com = require("analyzer4d.command")
+local config = require("analyzer4d.config")
 
-local defaults = {
-    host = nil,
-    port = 17000,
-    always_connect = false
-}
+Config = config.get_default_config()
+local connected = false
+
+local function check_connected(func)
+    return function()
+        if not connected and Config.always_connect then
+            M.connect()
+        end
+        func()
+    end
+end
 
 function M.set_appvar()
     local appvar_name = vim.fn.input("AppVar name: ")
@@ -18,13 +25,11 @@ function M.set_appvar()
 end
 
 function M.connect()
-    local host
-    if not defaults.host then
-        host = vim.fn.input("Optimizer4D IP: ")
-    else
-        host = defaults.host
+    if not Config.host then
+        Config.host = vim.fn.input("Optimizer4D IP: ")
     end
-    com.set_socket(host, defaults.port)
+    com.set_socket(Config.host, Config.port)
+    connected = true
 end
 
 function M.reload_qml()
@@ -50,25 +55,14 @@ function M.subscribe_to_log()
 end
 
 function M.setup(opts)
-    for key, value in pairs(opts) do
-        defaults[key] = value
-    end
-    defaults.host = defaults.host or os.getenv("ANALYZER_HOST")
-
-    if defaults.host == nil then
-        vim.api.nvim_err_writeln("Analyzer4D: Host unspecified, can not create socket")
-        return
-    end
-    if defaults.always_connect then
-        com.set_socket(defaults.host, defaults.port)
-    end
-    vim.api.nvim_create_user_command("AnalyzerConnect", M.connect, {})
-    vim.api.nvim_create_user_command("AnalyzerQmlReload", M.reload_qml, {})
-    vim.api.nvim_create_user_command("AnalyzerSetAppVar", M.set_appvar, {})
-    vim.api.nvim_create_user_command("AnalyzerStartMeasuring", M.start_measuring, {})
-    vim.api.nvim_create_user_command("AnalyzerStopMeasuring", M.stop_measuring, {})
-    vim.api.nvim_create_user_command("AnalyzerStartOperator", M.start_operator, {})
-    vim.api.nvim_create_user_command("AnalyzerSubscribeLog", M.subscribe_to_log, {})
+    Config = config.create_config(opts)
+    vim.api.nvim_create_user_command("AnalyzerConnect", check_connected(M.connect), {})
+    vim.api.nvim_create_user_command("AnalyzerQmlReload", check_connected(M.reload_qml), {})
+    vim.api.nvim_create_user_command("AnalyzerSetAppVar", check_connected(M.set_appvar), {})
+    vim.api.nvim_create_user_command("AnalyzerStartMeasuring", check_connected(M.start_measuring), {})
+    vim.api.nvim_create_user_command("AnalyzerStopMeasuring", check_connected(M.stop_measuring), {})
+    vim.api.nvim_create_user_command("AnalyzerStartOperator", check_connected(M.start_operator), {})
+    vim.api.nvim_create_user_command("AnalyzerSubscribeLog", check_connected(M.subscribe_to_log), {})
 end
 
 return M
