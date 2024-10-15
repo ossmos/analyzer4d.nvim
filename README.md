@@ -38,7 +38,10 @@ require("analyzer4d").setup({
 
     -- tries to auto connect to the Analyzer4D if there is no connection yet
     -- and a command is executed
-    always_connect = true
+    auto_connect = true
+
+    -- automatically connect to the log of the Analyzer4D
+    subscribe_log = false
 })
 ```
 
@@ -46,15 +49,9 @@ require("analyzer4d").setup({
 
 The plugin adds a couple of user commands. All of the commands have an "Analyzer"-prefix.
 
-### AnalyzerConnect
+### AnalyzerToggleLog
 
-Creates the connection to the Analyzer4D json communication server.
-This only has to be called if the `always_connect` option is set to `false`,
-or if the Analyzer4D software has been restarted.
-
-At the moment there is no automatic reconnect.
-The command first checks for the `host` option and then the `ANALYZER_HOST` environment
-variable of `host` is not specified. If both are not present, the user is prompted for an ip address.
+Toggles the buffer containing the log messages of the Analyzer4D software.
 
 ### AnalyzerQmlReload
 
@@ -78,6 +75,21 @@ Starts a measurement in the Analyzer4D software.
 
 Stops a running measurement in the Analyzer4D software.
 
+### AnalyzerSubscribeLog
+
+Subscribe to the log of the Analyzer4D software.
+
+### AnalyzerConnect
+
+Creates the connection to the Analyzer4D json communication server.
+This only has to be called if the `always_connect` option is set to `false`,
+or if the Analyzer4D software has been restarted.
+
+At the moment there is no automatic reconnect.
+The command first checks for the `host` option and then the `ANALYZER_HOST` environment
+variable of `host` is not specified. If both are not present, the user is prompted for an ip address.
+
+
 ## Features
 
 Stuff that is already implemented and things that are on my todo list for the near
@@ -87,9 +99,9 @@ future. If you have any suggestions feel free to let me know!
 - [x] Set AppVars
 - [x] Start Measurement
 - [x] Stop Measurement
+- [x] Display Analyzer4D log file
 - [ ] Automatic reconnect after Analyzer4D restart
 - [ ] Get AppVars
-- [ ] Display Analyzer4D log file
 - [ ] User Callbacks
 
 ## Acknowledgements

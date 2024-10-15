@@ -4,10 +4,16 @@ local config = require("analyzer4d.config")
 
 Config = config.get_default_config()
 local connected = false
+local log_buf = vim.api.nvim_create_buf(false, true)
+
+local function configure_log_buffer(buf)
+    vim.api.nvim_buf_set_var(buf, "buftype", "nofile")
+    vim.api.nvim_buf_set_var(buf, "readonly", true)
+end
 
 local function check_connected(func)
     return function()
-        if not connected and Config.always_connect then
+        if not connected and Config.auto_connect then
             M.connect()
         end
         func()
@@ -51,18 +57,36 @@ function M.start_operator()
 end
 
 function M.subscribe_to_log()
-    com.subscribe_to_log()
+    configure_log_buffer(log_buf)
+    local log_handler = function(entry)
+        vim.api.nvim_buf_set_lines(log_buf, -1, -1, false, { entry })
+    end
+    com.subscribe_to_log(log_handler)
+end
+
+function M.toggle_log()
+    for _, win in ipairs(vim.fn.getwininfo()) do
+        if win.bufnr == log_buf then
+            vim.api.nvim_win_close(win.winid, true)
+            return
+        end
+    end
+    vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
 end
 
 function M.setup(opts)
     Config = config.create_config(opts)
-    vim.api.nvim_create_user_command("AnalyzerConnect", check_connected(M.connect), {})
+    if Config.subscribe_log then
+        M.subscribe_to_log()
+    end
+    vim.api.nvim_create_user_command("AnalyzerToggleLog", M.toggle_log, {})
     vim.api.nvim_create_user_command("AnalyzerQmlReload", check_connected(M.reload_qml), {})
     vim.api.nvim_create_user_command("AnalyzerSetAppVar", check_connected(M.set_appvar), {})
     vim.api.nvim_create_user_command("AnalyzerStartMeasuring", check_connected(M.start_measuring), {})
     vim.api.nvim_create_user_command("AnalyzerStopMeasuring", check_connected(M.stop_measuring), {})
     vim.api.nvim_create_user_command("AnalyzerStartOperator", check_connected(M.start_operator), {})
     vim.api.nvim_create_user_command("AnalyzerSubscribeLog", check_connected(M.subscribe_to_log), {})
+    vim.api.nvim_create_user_command("AnalyzerConnect", check_connected(M.connect), {})
 end
 
 return M

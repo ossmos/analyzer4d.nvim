@@ -4,6 +4,9 @@ local utils = require("analyzer4d.utils")
 local msgid = 1
 local sock = nil
 
+local handlers = {
+
+}
 
 local function default_handler(response)
     --print(vim.inspect(response))
@@ -18,10 +21,6 @@ local function handle_responsesetappvar(response)
 end
 
 local function get_response_handler(cmd)
-    local handlers = {
-        ["responsesetappvar"] = handle_responsesetappvar,
-        ["default"] = default_handler
-    }
     if handlers[cmd] then
         return handlers[cmd]
     else
@@ -47,11 +46,21 @@ local function handle_response(chan_id, data, name)
     response_handler(resp_table)
 end
 
+local function add_response_handler(response_cmd, handler)
+    handlers[response_cmd] = handler
+end
+
+local function add_response_handlers()
+    add_response_handler("responsesetappvar", handle_responsesetappvar)
+    add_response_handler("default", default_handler)
+end
+
 local function create_socket(host, port)
     local success, socket = pcall(function()
         return vim.fn.sockconnect("tcp", host .. ":" .. port, {on_data=handle_response})
     end)
     if success then
+        add_response_handlers()
         return socket
     end
     vim.api.nvim_err_writeln("Unable to connect to " .. host .. ":" .. port)
@@ -129,7 +138,13 @@ function M.start_operator(op_name, params)
     send_cmd(cmd)
 end
 
-function M.subscribe_to_log()
+function M.subscribe_to_log(msg_handler)
+    add_response_handler("responselog", function(cmd)
+        local msg = cmd["msg"]
+        if msg then
+            msg_handler(msg)
+        end
+    end)
     local cmd = {
         cmd = "reportlog",
         p1 = true,
@@ -137,5 +152,6 @@ function M.subscribe_to_log()
     }
     send_cmd(cmd)
 end
+
 
 return M

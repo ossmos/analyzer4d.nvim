@@ -4,7 +4,8 @@ function M.get_default_config()
     return {
         host = nil,
         port = 17000,
-        always_connect = false
+        auto_connect= true,
+        subscribe_log = false
     }
 end
 
