@@ -23,6 +23,7 @@ local function check_connected(func)
     return function()
         if not connected and Config.auto_connect then
             M.connect()
+            if not connected then return end
         end
         func()
     end
@@ -42,8 +43,7 @@ function M.connect()
     if not Config.host then
         Config.host = vim.fn.input("Optimizer4D IP: ")
     end
-    com.set_socket(Config.host, Config.port)
-    connected = true
+    connected = com.set_socket(Config.host, Config.port)
 end
 
 function M.reload_qml()

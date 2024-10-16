@@ -68,6 +68,7 @@ end
 
 function M.set_socket(host, port)
     sock = create_socket(host, port)
+    return sock ~= nil
 end
 
 local function add_msgid(cmd)
