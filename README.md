@@ -104,6 +104,10 @@ future. If you have any suggestions feel free to let me know!
 - [ ] Get AppVars
 - [ ] User Callbacks
 
+## Known Issues
+
+- If the Host address does not exist it can happen that neovim completely crashes. I am not sure why since the sockconnect function is a `pcall` and should not crash the whole application anyway but I currently do not now whether it is related to neovim or the plugin
+
 ## Acknowledgements
 
 This plugin is just another wrapper around the JSON communication server of the 
