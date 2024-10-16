@@ -79,7 +79,8 @@ function M.toggle_log()
             return
         end
     end
-    vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
+    local win = vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
+    vim.api.nvim_set_option_value("wrap", true, {win = win})
 end
 
 function M.setup(opts)
