@@ -21,7 +21,7 @@ end
 
 local function check_connected(func)
     return function()
-        if not connected and Config.auto_connect then
+        if not com.is_connected() and Config.auto_connect then
             M.connect()
             if not connected then return end
         end
@@ -43,7 +43,7 @@ function M.connect()
     if not Config.host then
         Config.host = vim.fn.input("Optimizer4D IP: ")
     end
-    connected = com.set_socket(Config.host, Config.port)
+    com.set_socket(Config.host, Config.port)
 end
 
 function M.reload_qml()
@@ -102,7 +102,7 @@ function M.setup(opts)
     vim.api.nvim_create_user_command("AnalyzerStopMeasuring", check_connected(M.stop_measuring), {})
     vim.api.nvim_create_user_command("AnalyzerStartOperator", check_connected(M.start_operator), {})
     vim.api.nvim_create_user_command("AnalyzerSubscribeLog", check_connected(M.subscribe_to_log), {})
-    vim.api.nvim_create_user_command("AnalyzerConnect", check_connected(M.connect), {})
+    vim.api.nvim_create_user_command("AnalyzerConnect", M.connect, {})
 end
 
 return M

@@ -14,6 +14,10 @@ local function close_socket(socket)
     sock = nil
 end
 
+function M.is_connected()
+    return sock ~= nil
+end
+
 function M.disconnect()
     close_socket(sock)
 end
