@@ -48,6 +48,9 @@ function M.connect()
 end
 
 function M.reload_qml()
+    if Config.clear_log_on_qml_reload then
+        vim.api.nvim_buf_set_lines(log_buf, 0, -1, false, {})
+    end
     com.reload_qml()
 end
 

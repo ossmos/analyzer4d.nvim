@@ -31,17 +31,20 @@ return ({
 require("analyzer4d").setup({
     -- the ip address of the Optimizer4D running the Analyzer4D software
     -- If this value is set to nil, the ANALYZER_HOST env variable is used instead
-    host = nil
+    host = nil,
     
     -- the port of the json communication server
-    port = 17000
+    port = 17000,
 
     -- tries to auto connect to the Analyzer4D if there is no connection yet
     -- and a command is executed
-    auto_connect = true
+    auto_connect = true,
 
     -- automatically connect to the log of the Analyzer4D
-    subscribe_log = false
+    subscribe_log = false,
+
+    -- clear the buffer containing the Analyzer4D logs on exection of analyzer4d.reload_qml()
+    clear_log_on_qml_reload = false
 })
 ```
 
@@ -104,9 +107,6 @@ future. If you have any suggestions feel free to let me know!
 - [ ] Get AppVars
 - [ ] User Callbacks
 
-## Known Issues
-
-- If the Host address does not exist it can happen that neovim completely crashes. I am not sure why since the sockconnect function is a `pcall` and should not crash the whole application anyway but I currently do not now whether it is related to neovim or the plugin
 
 ## Acknowledgements
 

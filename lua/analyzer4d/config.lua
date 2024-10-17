@@ -5,7 +5,8 @@ function M.get_default_config()
         host = nil,
         port = 17000,
         auto_connect= true,
-        subscribe_log = false
+        subscribe_log = false,
+        clear_log_on_qml_reload = false,
     }
 end
 
