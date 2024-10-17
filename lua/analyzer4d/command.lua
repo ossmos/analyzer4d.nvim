@@ -4,9 +4,15 @@ local utils = require("analyzer4d.utils")
 local msgid = 1
 local sock = nil
 
+local connect_callbacks = {}
+
 local handlers = {
 
 }
+
+function M.add_connect_callback(callback)
+    table.insert(connect_callbacks, callback)
+end
 
 local function close_socket(socket)
     socket:shutdown()
@@ -109,6 +115,11 @@ local function create_socket(host, port) -- returns a uv_connect_t object
         end
         socket_loop(sock)
     end)
+    if sock then
+        for i=1, #connect_callbacks do
+            connect_callbacks[i]()
+        end
+    end
     return sock
 end
 

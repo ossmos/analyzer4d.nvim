@@ -6,6 +6,7 @@ Config = config.get_default_config()
 local connected = false
 local log_buf = vim.api.nvim_create_buf(false, true)
 
+
 local function configure_log_buffer(buf)
     vim.api.nvim_set_option_value("buftype", "nofile", {buf = buf})
     vim.api.nvim_set_option_value("readonly", true, {buf = buf})
@@ -88,7 +89,7 @@ end
 function M.setup(opts)
     Config = config.create_config(opts)
     if Config.subscribe_log then
-        check_connected(M.subscribe_to_log)()
+        com.add_connect_callback(M.subscribe_to_log)
     end
     vim.api.nvim_create_autocmd({"VimLeave"}, {
         callback = function()
