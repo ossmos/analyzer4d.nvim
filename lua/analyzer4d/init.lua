@@ -51,7 +51,7 @@ function M.reload_qml()
 end
 
 function M.start_measuring()
-    com.stop_measuring()
+    com.start_measuring()
 end
 
 function M.stop_measuring()
@@ -67,7 +67,9 @@ end
 function M.subscribe_to_log()
     configure_log_buffer(log_buf)
     local log_handler = function(entry)
-        vim.api.nvim_buf_set_lines(log_buf, -1, -1, false, { entry })
+        vim.schedule(function()
+            vim.api.nvim_buf_set_lines(log_buf, -1, -1, false, { entry })
+        end)
     end
     com.subscribe_to_log(log_handler)
 end
@@ -88,6 +90,11 @@ function M.setup(opts)
     if Config.subscribe_log then
         check_connected(M.subscribe_to_log)()
     end
+    vim.api.nvim_create_autocmd({"VimLeave"}, {
+        callback = function()
+            com.disconnect()
+        end
+    })
     vim.api.nvim_create_user_command("AnalyzerToggleLog", M.toggle_log, {})
     vim.api.nvim_create_user_command("AnalyzerQmlReload", check_connected(M.reload_qml), {})
     vim.api.nvim_create_user_command("AnalyzerSetAppVar", check_connected(M.set_appvar), {})

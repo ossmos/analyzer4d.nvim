@@ -8,16 +8,34 @@ local handlers = {
 
 }
 
+local function close_socket(socket)
+    socket:shutdown()
+    socket:close()
+    sock = nil
+end
+
+function M.disconnect()
+    close_socket(sock)
+end
+
+local function debug_handler(msg)
+    print("MSG: " .. vim.inspect(msg))
+end
+
 local function default_handler(response)
     --print(vim.inspect(response))
 end
 
 local function handle_responsesetappvar(response)
     if not response["ok"] then
-        vim.api.nvim_err_writeln("AppVar operation for appvar " .. response["p1"]  .. " was unsucessful")
+        vim.schedule(function()
+            vim.api.nvim_err_writeln("AppVar operation for appvar " .. response["p1"]  .. " was unsucessful")
+        end)
         return
     end
-    vim.notify("Successfully set the AppVar " .. response["p1"])
+    vim.schedule(function()
+        vim.notify("Successfully set the AppVar " .. response["p1"])
+    end)
 end
 
 local function get_response_handler(cmd)
@@ -28,13 +46,19 @@ local function get_response_handler(cmd)
     end
 end
 
-local function handle_response(chan_id, data, name)
+local function handle_response(data)
+    if data == nil then
+        close_socket(sock)
+        return
+    end
     local success, resp_table = pcall(function()
-        local json_string = utils.remove_json_prefix(data[1])
+        local json_string = utils.remove_json_prefix(data)
         return vim.json.decode(json_string)
     end)
     if not success then
-        vim.api.nvim_err_writeln("Error while parsing response: " .. vim.inspect(data))
+        vim.schedule_wrap(function()
+            vim.api.nvim_err_writeln("Error while parsing response: " .. vim.inspect(data))
+        end)
         return
     end
     if not resp_table["cmd"] then
@@ -55,15 +79,33 @@ local function add_response_handlers()
     add_response_handler("default", default_handler)
 end
 
-local function create_socket(host, port)
-    local success, socket = pcall(function()
-        return vim.fn.sockconnect("tcp", host .. ":" .. port, {on_data=handle_response})
+local function socket_loop(socket)
+    assert(socket, "client not started")
+    socket:read_start(function(err, chunk)
+        if err then
+            vim.schedule(function()
+                vim.api.nvim_err_writeln("Error reading from socket")
+            end)
+            return
+        end
+        handle_response(chunk)
     end)
-    if success then
-        add_response_handlers()
-        return socket
-    end
-    vim.api.nvim_err_writeln("Unable to connect to " .. host .. ":" .. port)
+end
+
+local function create_socket(host, port) -- returns a uv_connect_t object
+    add_response_handlers()
+    sock = vim.uv.new_tcp()
+    sock:connect(host, port, function(err)
+        if err then
+            vim.schedule(function()
+                vim.api.nvim_err_writeln("Error connecting to " .. host .. ":" .. port)
+                sock = nil
+            end)
+            return
+        end
+        socket_loop(sock)
+    end)
+    return sock
 end
 
 function M.set_socket(host, port)
@@ -84,7 +126,7 @@ local function send(socket, cmd)
         vim.api.nvim_err_writeln("Socket is not connected")
         return
     end
-    vim.fn.chansend(socket, msg)
+    socket:write(msg)
 end
 
 local function send_appcmd(opts)
