@@ -5,8 +5,6 @@ local config = require("analyzer4d.config")
 Config = config.get_default_config()
 local connected = false
 local log_buf = vim.api.nvim_create_buf(false, true)
-local log_win = nil
-
 
 local function configure_log_buffer(buf)
     vim.api.nvim_set_option_value("buftype", "nofile", {buf = buf})
@@ -68,7 +66,6 @@ function M.start_operator()
 end
 
 function M.subscribe_to_log()
-    configure_log_buffer(log_buf)
     local log_handler = function(entry)
         vim.schedule(function()
             vim.api.nvim_buf_set_lines(log_buf, -1, -1, false, { entry })
@@ -85,9 +82,11 @@ function M.subscribe_to_log()
 end
 
 function M.toggle_log()
-    if log_win then
-        vim.api.nvim_win_close(log_win, true)
-        log_win = nil
+    local log_windows = vim.fn.win_findbuf(log_buf)
+    for i=1, #log_windows do
+        vim.api.nvim_win_close(log_windows[i], true)
+    end
+    if #log_windows > 0 then
         return
     end
     log_win = vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
@@ -99,6 +98,7 @@ end
 
 function M.setup(opts)
     Config = config.create_config(opts)
+    configure_log_buffer(log_buf)
     if Config.subscribe_log then
         com.add_connect_callback(M.subscribe_to_log)
     end
