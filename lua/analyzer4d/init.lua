@@ -10,7 +10,6 @@ local log_win = nil
 
 local function configure_log_buffer(buf)
     vim.api.nvim_set_option_value("buftype", "nofile", {buf = buf})
-    vim.api.nvim_set_option_value("readonly", true, {buf = buf})
     vim.api.nvim_buf_set_name(buf, "Analyzer4D log")
     vim.api.nvim_create_autocmd({"BufWritePre"}, {
         pattern = "Analyzer4D log",
