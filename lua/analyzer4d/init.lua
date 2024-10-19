@@ -5,6 +5,7 @@ local config = require("analyzer4d.config")
 Config = config.get_default_config()
 local connected = false
 local log_buf = vim.api.nvim_create_buf(false, true)
+local log_win = nil
 
 
 local function configure_log_buffer(buf)
@@ -17,7 +18,6 @@ local function configure_log_buffer(buf)
             vim.api.nvim_buf_set_var(buf, "modified", false)
         end
     })
-    -- foo
 end
 
 local function check_connected(func)
@@ -73,20 +73,29 @@ function M.subscribe_to_log()
     local log_handler = function(entry)
         vim.schedule(function()
             vim.api.nvim_buf_set_lines(log_buf, -1, -1, false, { entry })
+            if not Config.auto_scroll_log then
+                return
+            end
+            local windows = vim.fn.win_findbuf(log_buf)
+            for i=1, #windows do
+                vim.api.nvim_win_set_cursor(windows[i], {vim.api.nvim_buf_line_count(log_buf), 0})
+            end
         end)
     end
     com.subscribe_to_log(log_handler)
 end
 
 function M.toggle_log()
-    for _, win in ipairs(vim.fn.getwininfo()) do
-        if win.bufnr == log_buf then
-            vim.api.nvim_win_close(win.winid, true)
-            return
-        end
+    if log_win then
+        vim.api.nvim_win_close(log_win, true)
+        log_win = nil
+        return
     end
-    local win = vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
-    vim.api.nvim_set_option_value("wrap", true, {win = win})
+    log_win = vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
+    vim.api.nvim_set_option_value("wrap", true, {win = log_win})
+    if Config.auto_scroll_log then
+        vim.api.nvim_win_set_cursor(log_win, {vim.api.nvim_buf_line_count(log_buf), 0})
+    end
 end
 
 function M.setup(opts)
