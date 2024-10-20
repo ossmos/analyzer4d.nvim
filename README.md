@@ -46,7 +46,7 @@ require("analyzer4d").setup({
     -- clear the buffer containing the Analyzer4D logs on exection of analyzer4d.reload_qml()
     clear_log_on_qml_reload = false
 
-    -- Automatically set the position of the cursor to the bottom of the log buffer when new entries come in
+    -- Automatically set the position of the cursor to the bottom of the log buffer when new entries come in if the cursor is not in the log window
     auto_scroll_log = true
 })
 ```

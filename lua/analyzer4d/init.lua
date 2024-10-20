@@ -74,7 +74,9 @@ function M.subscribe_to_log()
             end
             local windows = vim.fn.win_findbuf(log_buf)
             for i=1, #windows do
-                vim.api.nvim_win_set_cursor(windows[i], {vim.api.nvim_buf_line_count(log_buf), 0})
+                if windows[i] ~= vim.api.nvim_get_current_win() then
+                    vim.api.nvim_win_set_cursor(windows[i], {vim.api.nvim_buf_line_count(log_buf), 0})
+                end
             end
         end)
     end
@@ -89,7 +91,7 @@ function M.toggle_log()
     if #log_windows > 0 then
         return
     end
-    log_win = vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
+    local log_win = vim.api.nvim_open_win(log_buf, true, {split = "left", win = 0})
     vim.api.nvim_set_option_value("wrap", true, {win = log_win})
     if Config.auto_scroll_log then
         vim.api.nvim_win_set_cursor(log_win, {vim.api.nvim_buf_line_count(log_buf), 0})
