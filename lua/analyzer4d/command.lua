@@ -133,6 +133,7 @@ function M.create_socket(host_, port_) -- returns a uv_connect_t object
     if bad_conn_attempts > 15 then
         vim.api.nvim_err_writeln("Error connecting to " .. host .. ":" .. port)
         sock = nil
+        bad_conn_attempts = 0
         return
     end
     add_response_handlers()
