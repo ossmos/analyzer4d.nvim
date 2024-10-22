@@ -44,10 +44,13 @@ require("analyzer4d").setup({
     subscribe_log = false,
 
     -- clear the buffer containing the Analyzer4D logs on exection of analyzer4d.reload_qml()
-    clear_log_on_qml_reload = false
+    clear_log_on_qml_reload = false,
 
     -- Automatically set the position of the cursor to the bottom of the log buffer when new entries come in if the cursor is not in the log window
-    auto_scroll_log = true
+    auto_scroll_log = true,
+
+    -- Automatically attempt to reconnect after the connection has been lost
+    reconnect = true,
 })
 ```
 
@@ -95,6 +98,10 @@ At the moment there is no automatic reconnect.
 The command first checks for the `host` option and then the `ANALYZER_HOST` environment
 variable of `host` is not specified. If both are not present, the user is prompted for an ip address.
 
+### AnalyzerRestart
+
+Restarts the Analyzer software after 1 second of idle time.
+
 
 ## Features
 
@@ -106,7 +113,7 @@ future. If you have any suggestions feel free to let me know!
 - [x] Start Measurement
 - [x] Stop Measurement
 - [x] Display Analyzer4D log file
-- [ ] Automatic reconnect after Analyzer4D restart
+- [x] Automatic reconnect after Analyzer4D restart
 - [ ] Get AppVars
 - [ ] User Callbacks
 

@@ -41,7 +41,7 @@ function M.connect()
     if not Config.host then
         Config.host = vim.fn.input("Optimizer4D IP: ")
     end
-    com.set_socket(Config.host, Config.port)
+    com.create_socket(Config.host, Config.port)
 end
 
 function M.reload_qml()
@@ -108,9 +108,12 @@ function M.setup(opts)
     if Config.subscribe_log then
         com.add_connect_callback(M.subscribe_to_log)
     end
+    if Config.reconnect then
+        com.add_disconnect_callback(M.connect)
+    end
     vim.api.nvim_create_autocmd({"VimLeave"}, {
         callback = function()
-            com.disconnect()
+            com.disconnect(false)
         end
     })
     vim.api.nvim_create_user_command("AnalyzerToggleLog", M.toggle_log, {})

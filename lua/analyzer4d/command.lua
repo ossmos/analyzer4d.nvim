@@ -4,14 +4,23 @@ local utils = require("analyzer4d.utils")
 local msgid = 1
 local sock = nil
 
+local host, port = nil, nil
+
 local connect_callbacks = {}
+local disconnect_callbacks = {}
+local bad_conn_attempts = 0
 
 local handlers = {
 
 }
 
+-- TODO add event handler that one can register event types to
 function M.add_connect_callback(callback)
     table.insert(connect_callbacks, callback)
+end
+
+function M.add_disconnect_callback(callback)
+    table.insert(disconnect_callbacks, callback)
 end
 
 local function close_socket(socket)
@@ -24,8 +33,14 @@ function M.is_connected()
     return sock ~= nil
 end
 
-function M.disconnect()
+function M.disconnect(exec_callbacks)
     close_socket(sock)
+    if not exec_callbacks then
+        return
+    end
+    for i=1, #disconnect_callbacks do
+        disconnect_callbacks[i]()
+    end
 end
 
 local function debug_handler(msg)
@@ -58,7 +73,7 @@ end
 
 local function handle_response(data)
     if data == nil then
-        close_socket(sock)
+        M.disconnect(true)
         return
     end
     local success, resp_table = pcall(function()
@@ -89,12 +104,23 @@ local function add_response_handlers()
     add_response_handler("default", default_handler)
 end
 
+local function reconnect()
+    if host and port then
+        M.disconnect(false)
+        M.create_socket(host, port)
+    end
+end
+
 local function socket_loop(socket)
     assert(socket, "client not started")
     socket:read_start(function(err, chunk)
         if err then
+            if err == "ECONNRESET" then
+                vim.defer_fn(reconnect, 1000)
+                return
+            end
             vim.schedule(function()
-                vim.api.nvim_err_writeln("Error reading from socket")
+                vim.api.nvim_err_writeln("Error reading from socket: " .. vim.inspect(err))
             end)
             return
         end
@@ -102,30 +128,30 @@ local function socket_loop(socket)
     end)
 end
 
-local function create_socket(host, port) -- returns a uv_connect_t object
+function M.create_socket(host_, port_) -- returns a uv_connect_t object
+    host, port = host_, port_
+    if bad_conn_attempts > 15 then
+        vim.api.nvim_err_writeln("Error connecting to " .. host .. ":" .. port)
+        sock = nil
+        return
+    end
     add_response_handlers()
-    sock = vim.uv.new_tcp()
-    sock:connect(host, port, function(err)
+    local socket = vim.uv.new_tcp()
+    socket:connect(host, port, function(err)
         if err then
-            vim.schedule(function()
-                vim.api.nvim_err_writeln("Error connecting to " .. host .. ":" .. port)
-                sock = nil
-            end)
+            vim.defer_fn(function()
+                bad_conn_attempts = bad_conn_attempts + 1
+                M.create_socket(host_, port_)
+            end, 1000)
             return
         end
-        socket_loop(sock)
-    end)
-    if sock then
+        bad_conn_attempts = 0
         for i=1, #connect_callbacks do
-            connect_callbacks[i]()
+            vim.schedule(connect_callbacks[i])
         end
-    end
-    return sock
-end
-
-function M.set_socket(host, port)
-    sock = create_socket(host, port)
-    return sock ~= nil
+        sock = socket
+        socket_loop(socket)
+    end)
 end
 
 local function add_msgid(cmd)

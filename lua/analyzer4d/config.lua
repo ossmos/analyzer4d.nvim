@@ -8,6 +8,7 @@ function M.get_default_config()
         subscribe_log = false,
         clear_log_on_qml_reload = false,
         auto_scroll_log = true,
+        reconnect = true,
     }
 end
 
