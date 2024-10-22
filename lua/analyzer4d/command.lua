@@ -211,5 +211,15 @@ function M.subscribe_to_log(msg_handler)
     send_cmd(cmd)
 end
 
+function M.restart(wait_time, msg_display_time, msg)
+    wait_time = wait_time or 1
+    msg_display_time = msg_display_time or 0
+    msg = msg or ""
+    local opts = {
+        p1 = "RestartAnalyzer",
+        p2 = tostring(wait_time) .. tostring(msg_display_time) .. msg
+    }
+    send_appcmd(opts)
+end
 
 return M

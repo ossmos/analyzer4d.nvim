@@ -98,6 +98,10 @@ function M.toggle_log()
     end
 end
 
+function M.restart()
+    com.restart()
+end
+
 function M.setup(opts)
     Config = config.create_config(opts)
     configure_log_buffer(log_buf)
@@ -117,6 +121,7 @@ function M.setup(opts)
     vim.api.nvim_create_user_command("AnalyzerStartOperator", check_connected(M.start_operator), {})
     vim.api.nvim_create_user_command("AnalyzerSubscribeLog", check_connected(M.subscribe_to_log), {})
     vim.api.nvim_create_user_command("AnalyzerConnect", M.connect, {})
+    vim.api.nvim_create_user_command("AnalyzerRestart", check_connected(M.restart), {})
 end
 
 return M
