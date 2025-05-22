@@ -185,7 +185,7 @@ function M.reload_qml()
         p1 = "LoadPenGUI",
         p2 = "reload"
     }
-    send_appcmd(opts)
+    M.send_appcmd(opts)
 end
 
 function M.set_appvar(appvar, value)
@@ -197,21 +197,21 @@ function M.set_appvar(appvar, value)
         p1 = appvar,
         p2 = value
     }
-    send_cmd(cmd)
+    M.send_cmd(cmd)
 end
 
 function M.start_measuring()
     local opts = {
         p1 = "startMeasuring"
     }
-    send_appcmd(opts)
+    M.send_appcmd(opts)
 end
 
 function M.stop_measuring()
     local opts = {
         p1 = "stopMeasuring"
     }
-    send_appcmd(opts)
+    M.send_appcmd(opts)
 end
 
 function M.start_operator(op_name, params)
@@ -220,7 +220,7 @@ function M.start_operator(op_name, params)
         p1 = op_name,
         p2 = params
     }
-    send_cmd(cmd)
+    M.send_cmd(cmd)
 end
 
 function M.subscribe_to_log(msg_handler)
@@ -235,7 +235,7 @@ function M.subscribe_to_log(msg_handler)
         p1 = true,
         p2 = "striphtml"
     }
-    send_cmd(cmd)
+    M.send_cmd(cmd)
 end
 
 function M.restart(wait_time, msg_display_time, msg)
@@ -246,7 +246,7 @@ function M.restart(wait_time, msg_display_time, msg)
         p1 = "RestartAnalyzer",
         p2 = tostring(wait_time) .. tostring(msg_display_time) .. msg
     }
-    send_appcmd(opts)
+    M.send_appcmd(opts)
 end
 
 function M.load_process(process)
@@ -254,7 +254,7 @@ function M.load_process(process)
         p1 = "LoadProcess",
         p2 = tostring(process) .. " 0"
     }
-    send_appcmd(opts)
+    M.send_appcmd(opts)
 end
 
 return M
