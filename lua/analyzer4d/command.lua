@@ -38,7 +38,7 @@ function M.disconnect(exec_callbacks)
     if not exec_callbacks then
         return
     end
-    for i=1, #disconnect_callbacks do
+    for i = 1, #disconnect_callbacks do
         disconnect_callbacks[i]()
     end
 end
@@ -54,7 +54,7 @@ end
 local function handle_responsesetappvar(response)
     if not response["ok"] then
         vim.schedule(function()
-            vim.api.nvim_err_writeln("AppVar operation for appvar " .. response["p1"]  .. " was unsucessful")
+            vim.api.nvim_err_writeln("AppVar operation for appvar " .. response["p1"] .. " was unsucessful")
         end)
         return
     end
@@ -147,7 +147,7 @@ function M.create_socket(host_, port_) -- returns a uv_connect_t object
             return
         end
         bad_conn_attempts = 0
-        for i=1, #connect_callbacks do
+        for i = 1, #connect_callbacks do
             vim.schedule(connect_callbacks[i])
         end
         sock = socket
@@ -171,12 +171,12 @@ local function send(socket, cmd)
     socket:write(msg)
 end
 
-local function send_appcmd(opts)
+function M.send_appcmd(opts)
     opts.cmd = "AppCmd"
     send(sock, opts)
 end
 
-local function send_cmd(cmd)
+function M.send_cmd(cmd)
     send(sock, cmd)
 end
 
@@ -245,6 +245,14 @@ function M.restart(wait_time, msg_display_time, msg)
     local opts = {
         p1 = "RestartAnalyzer",
         p2 = tostring(wait_time) .. tostring(msg_display_time) .. msg
+    }
+    send_appcmd(opts)
+end
+
+function M.load_process(process)
+    local opts = {
+        p1 = "LoadProcess",
+        p2 = tostring(process) .. " 0"
     }
     send_appcmd(opts)
 end
